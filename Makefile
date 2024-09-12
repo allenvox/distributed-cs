@@ -15,7 +15,7 @@ endif
 .PHONY: all
 all: $(CXXEXEC)
 
-bin/%: src/*/%.cpp
+bin/%: src/%.cpp
 	$(DIRGUARD)
 	$(CXX) $(CFLAGS) $(CXXFLAGS) -o $@ $<
 
