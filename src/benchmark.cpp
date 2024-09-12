@@ -3,13 +3,18 @@
 #include <vector>
 
 int main(int argc, char *argv[]) {
-    int rank, size, n = 1000;  // Количество итераций
+    int rank, size, n = 1000; // Количество итераций
     double start, end, total_time = 0.0;
-    int message_size = 1024;  // Размер сообщения в байтах
 
-    MPI_Init(&argc, &argv);                // Инициализация MPI
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);  // Определение номера текущего процесса
-    MPI_Comm_size(MPI_COMM_WORLD, &size);  // Определение общего количества процессов
+    if (argc > 2) {
+        std::cout << "Usage: " << argv[0] << ' ' << "<message_size>\n";
+        return 0;
+    }
+    int message_size = std::stoi(argv[1]) * 1024 * 1024; // Размер сообщения в байтах
+
+    MPI_Init(&argc, &argv);               // Инициализация MPI
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank); // Определение номера текущего процесса
+    MPI_Comm_size(MPI_COMM_WORLD, &size); // Определение общего количества процессов
 
     if (size < 2) {
         std::cerr << "Необходимо минимум 2 процесса" << std::endl;
@@ -22,7 +27,7 @@ int main(int argc, char *argv[]) {
     MPI_Status status;
 
     for (int i = 0; i < n; i++) {
-        start = MPI_Wtime();  // Начало измерения времени
+        start = MPI_Wtime(); // Начало измерения времени
 
         if (rank == 0) {
             // Процесс 0 отправляет и принимает сообщение
@@ -42,9 +47,9 @@ int main(int argc, char *argv[]) {
 
     // Вывод результатов
     if (rank == 0) {
-        std::cout << "Среднее время обмена: " << total_time / n << " секунд" << std::endl;
+        std::cout << "size = " << argv[1] << " MB, avg_time = " << total_time / n << " s\n";
     }
 
-    MPI_Finalize();  // Завершение работы MPI
+    MPI_Finalize(); // Завершение работы MPI
     return 0;
 }
