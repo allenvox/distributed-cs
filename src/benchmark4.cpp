@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Вывод среднего времени выполнения для каждого процесса
-    std::cout << "rank " << rank << ": " << argv[1] << " M, avg_time = " << total_time / n << " секунд\n";
+    std::cout << "rank " << rank << ": size = " << argv[1] << " M, avg_time = " << total_time / n << " s\n";
 
     MPI_Finalize();
     return 0;
