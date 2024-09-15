@@ -3,7 +3,7 @@
 #include <vector>
 
 int main(int argc, char *argv[]) {
-    int rank, size, n = 1000;  // Количество итераций
+    int rank, size, n = 100;  // Количество итераций
     double start, end, total_time = 0.0;
 
     if (argc > 2) {
