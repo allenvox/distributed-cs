@@ -8,7 +8,7 @@ def load_data(filename):
 
 # Загрузка данных из файлов
 data_separate = load_data('1x8_separate.dat')
-data_singlecore = load_data('1x8_singlecore.dat')
+data_singlecore = load_data('1x8_singlecpu.dat')
 data_2x4 = load_data('2x4.dat')
 
 # Извлечение данных для осей X и Y
