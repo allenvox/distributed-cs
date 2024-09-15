@@ -11,21 +11,21 @@ def load_data(filename):
 # Главная функция
 def main(output_file=None):
     # Загрузка данных из файлов
-    data_separate = load_data('1x8_separate.dat')
-    data_singlecore = load_data('1x8_singlecpu.dat')
-    data_2x4 = load_data('2x4.dat')
+    data_separate = load_data('1x2_separate.dat')
+    data_singlecpu = load_data('1x2_singlecpu.dat')
+    data_2x1 = load_data('2x1.dat')
 
     # Извлечение данных для осей X и Y
     x_separate, y_separate = data_separate[:, 0], data_separate[:, 1]
-    x_singlecore, y_singlecore = data_singlecore[:, 0], data_singlecore[:, 1]
-    x_2x4, y_2x4 = data_2x4[:, 0], data_2x4[:, 1]
+    x_singlecpu, y_singlecpu = data_singlecpu[:, 0], data_singlecpu[:, 1]
+    x_2x1, y_2x1 = data_2x1[:, 0], data_2x1[:, 1]
 
     # Построение графика
     plt.figure(figsize=(10, 6))
 
-    plt.plot(x_separate, y_separate, label="1x8 Separate CPUs", marker='o')
-    plt.plot(x_singlecore, y_singlecore, label="1x8 Single CPU", marker='s')
-    plt.plot(x_2x4, y_2x4, label="2x4", marker='^')
+    plt.plot(x_separate, y_separate, label="1x2 Separate CPUs", marker='o')
+    plt.plot(x_singlecpu, y_singlecpu, label="1x2 Single CPU", marker='s')
+    plt.plot(x_2x1, y_2x1, label="2x1", marker='^')
 
     # Установка логарифмической шкалы для оси X
     plt.xscale('log', base=2)
