@@ -31,9 +31,7 @@ def FFDH(tasks, n):
 
 
 def calculate_statistics(alg_results):
-    # Математическое ожидание
     mean = np.mean(alg_results)
-    # Среднеквадратическое отклонение
     std_dev = np.std(alg_results)
     return mean, std_dev
 
@@ -72,13 +70,18 @@ def run_experiments():
     return epsilon_NFDH, epsilon_FFDH, task_counts
 
 
-# Функция для отображения результатов
 def plot_results(epsilon_NFDH, epsilon_FFDH, task_counts):
     means_NFDH = [x[0] for x in epsilon_NFDH]
     std_devs_NFDH = [x[1] for x in epsilon_NFDH]
 
     means_FFDH = [x[0] for x in epsilon_FFDH]
     std_devs_FFDH = [x[1] for x in epsilon_FFDH]
+
+    # NFDH is lower in both
+    print("NFDH means:", means_NFDH)
+    print("NFDH errors:", std_devs_NFDH)
+    print("FFDH means:", means_FFDH)
+    print("FFDH errors:", std_devs_FFDH)
 
     plt.figure(figsize=(12, 8))
 
@@ -96,7 +99,6 @@ def plot_results(epsilon_NFDH, epsilon_FFDH, task_counts):
     plt.show()
 
 
-# Основной блок
 if __name__ == "__main__":
     epsilon_NFDH, epsilon_FFDH, task_counts = run_experiments()
     plot_results(epsilon_NFDH, epsilon_FFDH, task_counts)
