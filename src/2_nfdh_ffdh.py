@@ -1,10 +1,11 @@
-import numpy as np
+import heapq
 import random
 import time
-import heapq
+
+import matplotlib.pyplot as plt
+import numpy as np
 
 
-# Функция для генерации задач
 def generate_tasks(m, n):
     tasks = []
     for _ in range(m):
@@ -14,7 +15,6 @@ def generate_tasks(m, n):
     return tasks
 
 
-# Алгоритм NFDH
 def NFDH(tasks, n):
     sorted_tasks = sorted(tasks, key=lambda x: x[1], reverse=True)  # Сортировка по времени выполнения
     machines = [0] * n  # Инициализация машин
@@ -23,7 +23,6 @@ def NFDH(tasks, n):
     return max(machines)  # Максимальная загрузка (makespan)
 
 
-# Алгоритм FFDH
 def FFDH(tasks, n):
     machines = [0] * n  # Инициализация машин
     for r_j, t_j in tasks:
@@ -31,7 +30,6 @@ def FFDH(tasks, n):
     return max(machines)  # Максимальная загрузка (makespan)
 
 
-# Функция для расчета статистики
 def calculate_statistics(alg_results):
     # Математическое ожидание
     mean = np.mean(alg_results)
@@ -40,7 +38,6 @@ def calculate_statistics(alg_results):
     return mean, std_dev
 
 
-# Главная функция для проведения экспериментов
 def run_experiments():
     task_counts = [500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000]
     n = 1024
@@ -103,3 +100,28 @@ def plot_results(epsilon_NFDH, epsilon_FFDH, task_counts):
 if __name__ == "__main__":
     epsilon_NFDH, epsilon_FFDH, task_counts = run_experiments()
     plot_results(epsilon_NFDH, epsilon_FFDH, task_counts)
+
+
+"""
+- Какова вычислительная сложность алгоритмов?
+
+Алгоритм NFDH имеет сложность O(m), так как задачи размещаются по уровням последовательно.
+
+Алгоритм FFDH с использованием дерева турнира имеет сложность O(mlogn), так как
+для каждой задачи нужно найти подходящий уровень за O(logn).
+
+
+- Как изменяется время работы алгоритмов в зависимости от m?
+
+Для NFDH время работы увеличивается линейно с ростом числа задач m.
+
+Для FFDH время работы увеличивается пропорционально mlogn, что более эффективно при увеличении n.
+
+
+- Как изменяется время работы алгоритмов в зависимости от n?
+
+Для NFDH изменение числа машин n практически не влияет на сложность.
+
+Для FFDH увеличение n делает алгоритм более сложным из-за работы с деревом турнира,
+но его эффективность по сравнению с NFDH будет лучше при больших n.
+"""
