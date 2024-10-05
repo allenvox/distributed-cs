@@ -178,10 +178,11 @@ def plot_results_llnl(epsilon_NFDH, epsilon_FFDH, task_counts):
 
     # NFDH
     plt.errorbar(task_counts, means_NFDH, yerr=std_devs_NFDH, fmt='-o', label="NFDH", capsize=5)
-
     # FFDH
     plt.errorbar(task_counts, means_FFDH, yerr=std_devs_FFDH, fmt='-s', label="FFDH", capsize=5)
 
+    plt.yscale("log")
+    plt.ylim(800, 3000)
     plt.xlabel("Количество задач (m)")
     plt.ylabel("Целевая функция (Makespan)")
     plt.title("Сравнительный анализ алгоритмов NFDH и FFDH для системы LLNL Atlas")
@@ -200,6 +201,7 @@ def plot_time_results(time_results, task_counts):
         plt.plot(task_counts, times_NFDH, '-o', label=f"NFDH (n={n})")
         plt.plot(task_counts, times_FFDH, '-s', label=f"FFDH (n={n})")
 
+    plt.yscale("log")
     plt.xlabel("Количество задач (m)")
     plt.ylabel("Время выполнения (секунды)")
     plt.title("Время выполнения алгоритмов NFDH и FFDH при различных n")
@@ -220,6 +222,7 @@ def plot_results(epsilon_NFDH, epsilon_FFDH, task_counts):
     plt.errorbar(task_counts, means_NFDH, yerr=std_devs_NFDH, fmt='-o', label="NFDH", capsize=5)
     plt.errorbar(task_counts, means_FFDH, yerr=std_devs_FFDH, fmt='-s', label="FFDH", capsize=5)
 
+    plt.ylim(1000, 1050)
     plt.xlabel("Количество задач (m)")
     plt.ylabel("Целевая функция (Makespan)")
     plt.title("Сравнительный анализ алгоритмов NFDH и FFDH")
