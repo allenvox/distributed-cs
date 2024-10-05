@@ -26,19 +26,45 @@ def generate_tasks_llnl(m):
 
 # next fit decreasing height
 def NFDH(tasks, n):
-    sorted_tasks = sorted(tasks, key=lambda x: x[1], reverse=True) # Sort by est. time
-    machines = [0] * n                                             # Machines initialization
+    # Сортировка задач по времени выполнения в порядке убывания
+    sorted_tasks = sorted(tasks, key=lambda x: x[1], reverse=True) 
+    machines = [0] * n  # Инициализация машин
+    current_machine = 0  # Индекс текущей машины
+    
     for r_j, t_j in sorted_tasks:
-        machines[machines.index(min(machines))] += t_j             # Assign task to min loaded machine
-    return max(machines)                                           # Max makespan
+        # Проверяем, может ли текущая машина принять задачу
+        if machines[current_machine] + t_j <= n:  # Проверяем, не превышает ли добавление задачи максимум
+            machines[current_machine] += t_j  # Назначаем задачу на текущую машину
+        else:
+            # Если не помещается, переходим к следующей машине
+            current_machine += 1
+            if current_machine < n:  # Проверяем, не вышли ли мы за пределы машин
+                machines[current_machine] += t_j  # Назначаем задачу на новую машину
+            else:
+                break  # Если нет доступных машин, прерываем выполнение
+
+    return max(machines)  # Возвращаем максимальную загрузку (makespan)
 
 
 # first fit decreasing height
 def FFDH(tasks, n):
-    machines = [0] * n
-    for r_j, t_j in tasks:
-        machines[machines.index(min(machines))] += t_j
-    return max(machines)
+    sorted_tasks = sorted(tasks, key=lambda x: x[1], reverse=True)  # Сортируем задачи по убыванию времени выполнения
+    machines = [0] * n  # Инициализируем машины
+    
+    for r_j, t_j in sorted_tasks:
+        # Ищем первую машину, которая может принять задачу
+        assigned = False
+        for i in range(n):
+            if machines[i] + t_j <= n:  # Если на машине достаточно ресурсов для назначения задачи
+                machines[i] += t_j  # Назначаем задачу на эту машину
+                assigned = True
+                break
+        
+        if not assigned:
+            # Если не удалось найти доступную машину, то назначаем задачу на ту, где меньше всего задач
+            machines[machines.index(min(machines))] += t_j
+    
+    return max(machines)  # Возвращаем максимальную загрузку (makespan)
 
 
 # calculate mean and standard deviation
@@ -203,13 +229,11 @@ def plot_results(epsilon_NFDH, epsilon_FFDH, task_counts):
 
 
 if __name__ == "__main__":
-    # 1. Example with basic tasks
-
     # 2. Execution times analysis
     time_results, task_counts = run_time_experiments()
     plot_time_results(time_results, task_counts)
 
-    # 3. Makespan analysis
+    # 3. Epsilons (makespans, std deviations) analysis
     epsilon_NFDH, epsilon_FFDH, task_counts = run_makespan_experiments()
     print(epsilon_NFDH, epsilon_FFDH)
     plot_results(epsilon_NFDH, epsilon_FFDH, task_counts)
