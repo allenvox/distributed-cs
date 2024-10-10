@@ -29,6 +29,19 @@ def ffd(tasks, n_machines):
             containers.append([task])
     return containers
 
+def rnd(tasks, n_machines):
+    containers = []
+    for task in tasks:
+        placed = False
+        if containers:
+            random_container = random.choice(containers)
+            if sum(t[0] for t in random_container) + task[0] <= n_machines:
+                random_container.append(task)
+                placed = True
+        if not placed:
+            containers.append([task])
+    return containers
+
 def best_fit(tasks, n_machines):
     containers = []
     for task in tasks:
@@ -83,38 +96,38 @@ def next_fit(tasks, n_machines):
 
     return containers
 
-
+# Алгоритм FFDH для минимизации количества машин с возвратом к началу
 def ffdh(containers, n_machines):
-    machines = []
+    machines = [[] for _ in range(n_machines)]  # Инициализация всех машин
+    machine_idx = 0  # Индекс текущей машины
     for container in containers:
         placed = False
-        for machine in machines:
-            # Если в машине есть место, помещаем туда контейнер
-            if sum(task[1] for task in machine) + sum(task[1] for task in container) <= n_machines:
-                machine.extend(container)
+        for i in range(n_machines):
+            # Пытаемся разместить контейнер в первую машину, где есть место
+            idx = (machine_idx + i) % n_machines  # Возврат к началу, если машины заканчиваются
+            if sum(task[0] for task in machines[idx]) + sum(task[0] for task in container) <= n_machines:
+                machines[idx].extend(container)
                 placed = True
                 break
-        # Если не нашли подходящую машину, создаем новую
         if not placed:
-            machines.append(container.copy())
+            # Если контейнер не помещается, добавляем в первую машину и увеличиваем целевую функцию
+            machines[machine_idx].extend(container)
+            machine_idx = (machine_idx + 1) % n_machines  # Переходим к следующей машине
     return machines
 
+# Алгоритм NFDH для минимизации количества машин с возвратом к началу
 def nfdh(containers, n_machines):
-    machines = []
-    current_machine = []
+    machines = [[] for _ in range(n_machines)]  # Инициализация всех машин
+    current_machine_idx = 0
     for container in containers:
-        # Если есть место в текущей машине, помещаем туда
-        if sum(task[1] for task in current_machine) + sum(task[1] for task in container) <= n_machines:
-            current_machine.extend(container)
+        # Если контейнер помещается в текущую машину
+        if sum(task[0] for task in machines[current_machine_idx]) + sum(task[0] for task in container) <= n_machines:
+            machines[current_machine_idx].extend(container)
         else:
-            # Если нет места, сохраняем текущую машину и начинаем новую
-            machines.append(current_machine)
-            current_machine = container.copy()
-    # Не забываем добавить последнюю машину, если она не пустая
-    if current_machine:
-        machines.append(current_machine)
+            # Если не помещается, переходим к следующей машине (с возвратом к началу)
+            current_machine_idx = (current_machine_idx + 1) % n_machines
+            machines[current_machine_idx].extend(container)
     return machines
-
 
 # Функция для подсчета целевой функции T(S)
 def objective_function(schedule):
@@ -129,7 +142,7 @@ def lower_bound(tasks, n_machines):
 def experiment_3():
     n_machines = 1024  # Количество машин
     task_sizes = range(500, 5500, 500)  # Количество задач от 500 до 5000 с шагом 500
-    num_experiments = 2  # Количество повторений для каждого размера задач
+    num_experiments = 10  # Количество повторений для каждого размера задач
 
     nfdh_epsilons = []
     ffdh_epsilons = []
@@ -145,7 +158,8 @@ def experiment_3():
             tasks = generate_tasks(m, n_machines)
 
             # Упаковка в контейнеры
-            containers = ffd(tasks, n_machines)
+            f_containers = ffd(tasks, n_machines)
+            r_containers = rnd(tasks, n_machines)
             #containers = best_fit(tasks, n_machines)
             #containers = worst_fit(tasks, n_machines)
             #containers = next_fit(tasks, n_machines)
@@ -154,13 +168,13 @@ def experiment_3():
             T_prime = lower_bound(tasks, n_machines)
 
             # NFDH алгоритм
-            nfdh_schedule = nfdh(containers, n_machines)
+            nfdh_schedule = nfdh(r_containers, n_machines)
             nfdh_T = objective_function(nfdh_schedule)
             nfdh_epsilon = (nfdh_T - T_prime) / T_prime
             nfdh_epsilon_set.append(nfdh_epsilon)
 
             # FFDH алгоритм
-            ffdh_schedule = ffdh(containers, n_machines)
+            ffdh_schedule = ffdh(f_containers, n_machines)
             ffdh_T = objective_function(ffdh_schedule)
             ffdh_epsilon = (ffdh_T - T_prime) / T_prime
             ffdh_epsilon_set.append(ffdh_epsilon)

@@ -1,6 +1,8 @@
 import random
 import time
 
+import matplotlib.pyplot as plt
+
 
 # Генерация задач в виде кортежей (rj, tj)
 def generate_tasks(num_tasks, n_machines):
@@ -10,6 +12,20 @@ def generate_tasks(num_tasks, n_machines):
         tj = random.randint(1, 10)  # Время выполнения задачи (от 1 до 10)
         tasks.append((rj, tj))  # Каждая задача — это кортеж (rj, tj)
     return tasks
+
+# Случайное распределение задач по контейнерам
+def rnd(tasks, n_machines):
+    containers = []
+    for task in tasks:
+        placed = False
+        if containers:
+            random_container = random.choice(containers)
+            if sum(t[0] for t in random_container) + task[0] <= n_machines:
+                random_container.append(task)
+                placed = True
+        if not placed:
+            containers.append([task])
+    return containers
 
 # Алгоритм FFD (First-Fit Decreasing) для упаковки задач в контейнеры
 def ffd(tasks, n_machines):
@@ -34,92 +50,81 @@ def ffd(tasks, n_machines):
 
     return containers
 
+# Алгоритм FFDH для минимизации количества машин с возвратом к началу
 def ffdh(containers, n_machines):
-    machines = []
+    machines = [[] for _ in range(n_machines)]  # Инициализация всех машин
+    machine_idx = 0  # Индекс текущей машины
     for container in containers:
         placed = False
-        for machine in machines:
-            # Если в машине есть место, помещаем туда контейнер
-            if sum(task[1] for task in machine) + sum(task[1] for task in container) <= n_machines:
-                machine.extend(container)
+        for i in range(n_machines):
+            # Пытаемся разместить контейнер в первую машину, где есть место
+            idx = (machine_idx + i) % n_machines  # Возврат к началу, если машины заканчиваются
+            if sum(task[0] for task in machines[idx]) + sum(task[0] for task in container) <= n_machines:
+                machines[idx].extend(container)
                 placed = True
                 break
-        # Если не нашли подходящую машину, создаем новую
         if not placed:
-            machines.append(container.copy())
+            # Если контейнер не помещается, добавляем в первую машину и увеличиваем целевую функцию
+            machines[machine_idx].extend(container)
+            machine_idx = (machine_idx + 1) % n_machines  # Переходим к следующей машине
     return machines
 
+# Алгоритм NFDH для минимизации количества машин с возвратом к началу
 def nfdh(containers, n_machines):
-    machines = []
-    current_machine = []
+    machines = [[] for _ in range(n_machines)]  # Инициализация всех машин
+    current_machine_idx = 0
     for container in containers:
-        # Если есть место в текущей машине, помещаем туда
-        if sum(task[1] for task in current_machine) + sum(task[1] for task in container) <= n_machines:
-            current_machine.extend(container)
+        # Если контейнер помещается в текущую машину
+        if sum(task[0] for task in machines[current_machine_idx]) + sum(task[0] for task in container) <= n_machines:
+            machines[current_machine_idx].extend(container)
         else:
-            # Если нет места, сохраняем текущую машину и начинаем новую
-            machines.append(current_machine)
-            current_machine = container.copy()
-    # Не забываем добавить последнюю машину, если она не пустая
-    if current_machine:
-        machines.append(current_machine)
+            # Если не помещается, переходим к следующей машине (с возвратом к началу)
+            current_machine_idx = (current_machine_idx + 1) % n_machines
+            machines[current_machine_idx].extend(container)
     return machines
 
 # Функция для подсчета целевой функции T(S) — максимальное время выполнения среди всех машин
 def objective_function(schedule):
     return max([sum([task[1] for task in machine]) for machine in schedule])
 
-# Эксперимент 1: запуск для m = 30, n = 5, tj от 1 до 10
-def experiment_1():
-    num_tasks = 100  # Количество задач
-    n_machines = 64  # Количество машин
+# Функция для построения графика зависимости T(S) от количества задач
+def plot_experiment():
+    task_sizes = range(500, 5500, 500)  # Количество задач от 500 до 5000 с шагом 500
+    n_machines = 1024  # Количество машин
 
-    # Генерируем задачи
-    tasks = generate_tasks(num_tasks, n_machines)
+    t_nfdh = []
+    t_ffdh = []
 
-    print("\nСгенерированные задачи (rj, tj):")
-    print(tasks)
+    # Проход по количеству задач
+    for num_tasks in task_sizes:
+        # Генерация задач
+        tasks = generate_tasks(num_tasks, n_machines)
 
-    # Шаг 1: Упаковка задач по контейнерам с помощью FFD
-    containers = ffd(tasks, n_machines)
+        # Упаковка задач по контейнерам
+        f_containers = ffd(tasks, n_machines)
+        r_containers = rnd(tasks, n_machines)
 
-    print("\nКонтейнеры после FFD:")
-    for idx, container in enumerate(containers):
-        print(f"Контейнер {idx + 1}: {container}")
+        # Применение NFDH
+        nfdh_schedule = nfdh(r_containers, n_machines)
+        nfdh_T = objective_function(nfdh_schedule)
+        t_nfdh.append(nfdh_T)
 
-    # Шаг 2: Применение NFDH
-    start = time.time()
-    nfdh_schedule = nfdh(containers, n_machines)
-    nfdh_time = time.time() - start
-    nfdh_T = objective_function(nfdh_schedule)
+        # Применение FFDH
+        ffdh_schedule = ffdh(f_containers, n_machines)
+        ffdh_T = objective_function(ffdh_schedule)
+        t_ffdh.append(ffdh_T)
 
-    print("\nNFDH расписание:")
-    for idx, machine in enumerate(nfdh_schedule):
-        print(f"Машина {idx + 1}: {machine}")
-    print(f"NFDH целевая функция T(S): {nfdh_T}")
-    print(f"NFDH время выполнения: {nfdh_time:.6f} секунд")
-
-    # Шаг 3: Применение FFDH
-    start = time.time()
-    ffdh_schedule = ffdh(containers, n_machines)
-    ffdh_time = time.time() - start
-    ffdh_T = objective_function(ffdh_schedule)
-
-    print("\nFFDH расписание:")
-    for idx, machine in enumerate(ffdh_schedule):
-        print(f"Машина {idx + 1}: {machine}")
-    print(f"FFDH целевая функция T(S): {ffdh_T}")
-    print(f"FFDH время выполнения: {ffdh_time:.6f} секунд")
-
-    # Нижняя граница для T'(S) — это среднее время выполнения всех задач, разделенное на количество машин
-    lower_bound_T = sum([task[1] for task in tasks]) / n_machines
-    epsilon_nfdh = (nfdh_T - lower_bound_T) / lower_bound_T
-    epsilon_ffdh = (ffdh_T - lower_bound_T) / lower_bound_T
-
-    print(f"\nНижняя граница T'(S): {lower_bound_T:.2f}")
-    print(f"Epsilon NFDH: {epsilon_nfdh:.2%}")
-    print(f"Epsilon FFDH: {epsilon_ffdh:.2%}")
+    # Построение графика
+    plt.figure(figsize=(10, 6))
+    plt.plot(task_sizes, t_nfdh, label="NFDH", marker='o')
+    plt.plot(task_sizes, t_ffdh, label="FFDH", marker='s')
+    plt.xlabel("Количество задач")
+    plt.ylabel("Целевая функция T(S)")
+    plt.title("Зависимость T(S) от количества задач")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
 
 # Запуск эксперимента
 if __name__ == "__main__":
-    experiment_1()
+    plot_experiment()
