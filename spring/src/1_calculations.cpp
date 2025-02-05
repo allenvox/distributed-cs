@@ -6,12 +6,16 @@
 using namespace std;
 
 double calculateTheta(int N, double lambda, int m, double mu, int n1) {
+    auto mu_l = [N, m, mu](int l) -> double {
+        return (l >= N - m && l <= N) ? (N - l) * mu : m * mu;
+    };
+
     double theta = 0.0;
     if (n1 != N) {
         for (int j = n1 + 1; j <= N; ++j) {
             double product = 1.0;
             for (int l = n1; l < j; ++l) {
-                product *= mu / (l * lambda);
+                product *= mu_l(l) / (l * lambda);
             }
             theta += (1.0 / (j * lambda)) * product;
         }

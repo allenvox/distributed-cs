@@ -5,9 +5,9 @@ set xlabel "Количество машин (n)"
 set ylabel "Θ, часов"
 set grid
 
-#set logscale y 10
+set logscale y 10
 set format y "10^{%L}"
-#set ytics 10
+set ytics 10
 set xtics 1
 
 plot "data/1_3.txt" using 1:($2 == 1 ? $3 : NaN) with linespoints title "m=1", \
